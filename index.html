@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Block Blast - เกมวางบล็อก 8×8 (Retro Arcade)</title>
+
+  <!-- Google Fonts: Retro Arcade & Gaming Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700&family=Press+Start+2P&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Retro CRT Scanline Filter -->
+  <div class="scanlines"></div>
+
+  <div class="game-container">
+    <!-- Header -->
+    <header class="arcade-header">
+      <h1 class="title-badge">
+        <span class="accent-x">BLOCK</span>
+        <span class="accent-o">BLAST</span>
+      </h1>
+      <p class="subtitle">เกมวางบล็อก 8×8 เคลียร์แถวให้ได้มากที่สุด</p>
+    </header>
+
+    <!-- Controls Bar -->
+    <nav class="controls-bar" aria-label="Game Controls">
+      <div class="button-group">
+        <button class="icon-btn" id="mute-btn" title="เปิด/ปิดเสียง" aria-label="เปิด/ปิดเสียง">🔊</button>
+        <button class="icon-btn" id="open-rules-btn" title="กติกาการเล่น" aria-label="กติกาการเล่น">❓ กติกา</button>
+        <button class="icon-btn" id="restart-btn" title="เริ่มเกมใหม่" aria-label="เริ่มเกมใหม่">🔄 รีเซ็ต</button>
+      </div>
+    </nav>
+
+    <!-- Scoreboard -->
+    <section class="scoreboard" aria-label="ตารางคะแนน">
+      <div class="score-box score-x">
+        <span class="score-label">คะแนน (SCORE)</span>
+        <span class="score-val" id="score-val">0</span>
+      </div>
+      <div class="score-box score-o">
+        <span class="score-label">คอมโบ (COMBO)</span>
+        <span class="score-val" id="combo-val">x0</span>
+      </div>
+      <div class="score-box score-tie">
+        <span class="score-label">สูงสุด (BEST)</span>
+        <span class="score-val" id="best-val">0</span>
+      </div>
+    </section>
+
+    <!-- Hint Banner -->
+    <section class="status-panel" aria-live="polite">
+      <div class="board-hint" id="board-hint">
+        <span class="badge-free">★ เริ่มเลย</span> ลากบล็อกด้านล่างไปวางบนกระดาน
+      </div>
+    </section>
+
+    <!-- Main Game Board 8x8 -->
+    <main class="board-wrapper" id="board-wrapper">
+      <div class="main-board" id="board" role="grid" aria-label="กระดาน Block Blast 8×8">
+        <!-- Rendered dynamically by game.js -->
+      </div>
+      <div class="popup-layer" id="popup-layer"></div>
+    </main>
+
+    <!-- Piece Tray -->
+    <section class="tray" id="tray" aria-label="บล็อกที่ใช้วาง">
+      <div class="slot" data-idx="0"></div>
+      <div class="slot" data-idx="1"></div>
+      <div class="slot" data-idx="2"></div>
+    </section>
+  </div>
+
+  <!-- Game Over / New Record Modal -->
+  <div class="modal-backdrop hidden" id="result-modal" role="dialog" aria-modal="true">
+    <div class="modal-box">
+      <div class="modal-icon" id="modal-icon">💥</div>
+      <h2 class="modal-title" id="modal-title">GAME OVER</h2>
+      <p class="modal-subtitle" id="modal-subtitle">ไม่มีที่วางบล็อกแล้ว</p>
+      <div class="modal-score">
+        <span class="modal-score-label">คะแนนของคุณ</span>
+        <span class="modal-score-val" id="modal-score">0</span>
+      </div>
+      <button class="modal-btn" id="play-again-btn">เล่นใหม่อีกครั้ง 🕹️</button>
+    </div>
+  </div>
+
+  <!-- Rules Modal -->
+  <div class="modal-backdrop hidden" id="rules-modal" role="dialog" aria-modal="true">
+    <div class="modal-box rules-box">
+      <button class="modal-close-icon" id="close-rules-btn" aria-label="ปิดหน้าต่าง">&times;</button>
+      <h2>กติกา BLOCK BLAST</h2>
+      <div class="rules-content">
+        <div class="rule-item">
+          <strong>1. วางบล็อกบนกระดาน 8×8</strong>
+          ลากบล็อกจากถาดด้านล่างไปวางบนกระดาน บล็อกมีทีละ 3 ชิ้น และ<strong>หมุนบล็อกไม่ได้</strong> เมื่อวางครบทั้ง 3 ชิ้นจะได้ชุดใหม่
+        </div>
+        <div class="rule-item">
+          <strong>2. เติมเต็มแถวหรือคอลัมน์</strong>
+          เมื่อแถวแนวนอนหรือแนวตั้งเต็มทุกช่อง แถวนั้นจะระเบิดหายไปทันที เคลียร์หลายแถวพร้อมกันได้คะแนนมากขึ้น
+        </div>
+        <div class="rule-item">
+          <strong>3. การให้คะแนน</strong>
+          วางบล็อก 1 แต้มต่อช่อง ส่วนการเคลียร์ได้ 20 × (จำนวนแถว)² × คอมโบ
+        </div>
+        <div class="rule-item rule-highlight">
+          <strong>4. คอมโบ (COMBO)</strong>
+          เคลียร์ต่อเนื่องเพื่อเพิ่มคอมโบ หากวางบล็อกติดกัน 3 ชิ้นโดยไม่เคลียร์แถวเลย คอมโบจะหลุด
+          <br>
+          <em>*ถ้าเคลียร์จนกระดานว่างทั้งหมด จะได้โบนัส PERFECT +300</em>
+        </div>
+        <div class="rule-item">
+          <strong>5. เงื่อนไขจบเกม</strong>
+          เมื่อบล็อกที่เหลือไม่มีที่ว่างพอวางลงบนกระดานได้เลย เกมจะจบ ทำคะแนนให้สูงกว่า BEST ของตัวเอง!
+        </div>
+      </div>
+      <button class="modal-btn" style="margin-top: 12px; width: 100%;" id="rules-ok-btn">เข้าใจแล้ว ลุยเลย! 🚀</button>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="audio.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>
